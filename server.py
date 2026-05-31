@@ -1,12 +1,25 @@
 import json
 import os
 import sqlite3
-from flask import Flask, jsonify, request, send_from_directory
+from functools import wraps
+
+from flask import Flask, jsonify, request, send_from_directory, session
+from werkzeug.security import check_password_hash, generate_password_hash
 
 app = Flask(__name__, static_folder="static")
 
 DB_PATH = os.environ.get("DB_PATH", "data.db")
+ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME", "admin")
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "skjoldmo")
+PASSWORD_PEPPER = os.environ.get("PASSWORD_PEPPER", "dev-pepper")
+SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret-key")
+
+app.secret_key = SECRET_KEY
+app.config.update(
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE=os.environ.get("SESSION_COOKIE_SAMESITE", "Lax"),
+    SESSION_COOKIE_SECURE=os.environ.get("SESSION_COOKIE_SECURE", "").lower() == "true",
+)
 
 DEFAULT_CONFIG = {
     "email": "info@skjoldmoband.com",
@@ -56,10 +69,65 @@ def get_db():
     return conn
 
 
+def hash_password(password):
+    return generate_password_hash(
+        password + PASSWORD_PEPPER,
+        method="pbkdf2:sha256",
+        salt_length=16,
+    )
+
+
+def verify_password(password, password_hash):
+    return check_password_hash(password_hash, password + PASSWORD_PEPPER)
+
+
+def serialize_user(row):
+    return {
+        "id": row["id"],
+        "username": row["username"],
+        "created_at": row["created_at"],
+    }
+
+
+def get_current_user():
+    user_id = session.get("user_id")
+    if not user_id:
+        return None
+    with get_db() as conn:
+        row = conn.execute(
+            "SELECT id, username, password_hash, created_at FROM users WHERE id = ?",
+            [user_id],
+        ).fetchone()
+    if row:
+        return row
+    session.clear()
+    return None
+
+
+def require_auth(fn):
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        if get_current_user() is None:
+            return jsonify({"error": "Unauthorized"}), 401
+        return fn(*args, **kwargs)
+
+    return wrapper
+
+
 def init_db():
     with get_db() as conn:
         conn.execute(
             "CREATE TABLE IF NOT EXISTS config (id INTEGER PRIMARY KEY CHECK (id = 1), data TEXT NOT NULL)"
+        )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT NOT NULL UNIQUE COLLATE NOCASE,
+                password_hash TEXT NOT NULL,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            )
+            """
         )
         existing = conn.execute("SELECT id FROM config WHERE id = 1").fetchone()
         if not existing:
@@ -67,6 +135,87 @@ def init_db():
                 "INSERT INTO config (id, data) VALUES (1, ?)",
                 [json.dumps(DEFAULT_CONFIG, ensure_ascii=False)],
             )
+        user_count = conn.execute("SELECT COUNT(*) AS count FROM users").fetchone()["count"]
+        if not user_count:
+            conn.execute(
+                "INSERT INTO users (username, password_hash) VALUES (?, ?)",
+                [ADMIN_USERNAME.strip() or "admin", hash_password(ADMIN_PASSWORD)],
+            )
+
+
+# Ensure tables and bootstrap records exist in both local runs and WSGI hosts.
+init_db()
+
+
+@app.route("/api/auth/me", methods=["GET"])
+def auth_me():
+    user = get_current_user()
+    if not user:
+        return jsonify({"authenticated": False})
+    return jsonify({"authenticated": True, "user": serialize_user(user)})
+
+
+@app.route("/api/auth/login", methods=["POST"])
+def auth_login():
+    payload = request.get_json(force=True, silent=True) or {}
+    username = str(payload.get("username", "")).strip()
+    password = str(payload.get("password", ""))
+    if not username or not password:
+        return jsonify({"error": "Missing credentials"}), 400
+
+    with get_db() as conn:
+        row = conn.execute(
+            "SELECT id, username, password_hash, created_at FROM users WHERE username = ?",
+            [username],
+        ).fetchone()
+
+    if not row or not verify_password(password, row["password_hash"]):
+        return jsonify({"error": "Unauthorized"}), 401
+
+    session.clear()
+    session["user_id"] = row["id"]
+    session["username"] = row["username"]
+    return jsonify({"ok": True, "user": serialize_user(row)})
+
+
+@app.route("/api/auth/logout", methods=["POST"])
+def auth_logout():
+    session.clear()
+    return jsonify({"ok": True})
+
+
+@app.route("/api/users", methods=["GET"])
+@require_auth
+def list_users():
+    with get_db() as conn:
+        rows = conn.execute(
+            "SELECT id, username, created_at FROM users ORDER BY created_at ASC, username ASC"
+        ).fetchall()
+    return jsonify({"users": [dict(row) for row in rows]})
+
+
+@app.route("/api/users", methods=["POST"])
+@require_auth
+def create_user():
+    payload = request.get_json(force=True, silent=True) or {}
+    username = str(payload.get("username", "")).strip()
+    password = str(payload.get("password", ""))
+    if not username or not password:
+        return jsonify({"error": "Missing credentials"}), 400
+
+    with get_db() as conn:
+        try:
+            conn.execute(
+                "INSERT INTO users (username, password_hash) VALUES (?, ?)",
+                [username, hash_password(password)],
+            )
+        except sqlite3.IntegrityError:
+            return jsonify({"error": "Username already exists"}), 409
+        row = conn.execute(
+            "SELECT id, username, created_at FROM users WHERE username = ?",
+            [username],
+        ).fetchone()
+    return jsonify({"ok": True, "user": dict(row)}), 201
 
 
 @app.route("/api/config", methods=["GET"])
@@ -79,10 +228,8 @@ def get_config():
 
 
 @app.route("/api/config", methods=["POST"])
+@require_auth
 def save_config():
-    password = request.headers.get("X-Admin-Password", "")
-    if password != ADMIN_PASSWORD:
-        return jsonify({"error": "Unauthorized"}), 401
     data = request.get_json(force=True, silent=True)
     if data is None:
         return jsonify({"error": "Invalid JSON"}), 400
@@ -103,6 +250,5 @@ def serve_static(path):
 
 
 if __name__ == "__main__":
-    init_db()
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=os.environ.get("DEBUG", "").lower() == "true")

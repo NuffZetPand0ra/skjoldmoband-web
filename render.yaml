@@ -1,0 +1,33 @@
+services:
+  - type: web
+    name: skjoldmo-web
+    runtime: python
+    plan: starter
+    region: frankfurt
+    autoDeploy: true
+    buildCommand: pip install -r requirements.txt
+    startCommand: bash scripts/start.sh
+    healthCheckPath: /
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.3
+      - key: DEBUG
+        value: "false"
+      - key: SESSION_COOKIE_SECURE
+        value: "true"
+      - key: SESSION_COOKIE_SAMESITE
+        value: Lax
+      - key: DB_PATH
+        value: /var/data/data.db
+      - key: ADMIN_USERNAME
+        value: admin
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: PASSWORD_PEPPER
+        sync: false
+      - key: SECRET_KEY
+        sync: false
+    disks:
+      - name: data
+        mountPath: /var/data
+        sizeGB: 1
