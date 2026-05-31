@@ -115,7 +115,15 @@ function Site({ cfg }) {
                   <span className="cname" style={{ fontSize: 19, color: "var(--ink)" }}>{sh.name}</span>
                   {sh.city ? <span style={{ fontSize: 14.5, color: "var(--ink-3)", marginLeft: 12 }}>{sh.city}</span> : null}
                 </div>
-                <span className="st" style={{ justifySelf: "end" }}><StatusPill status={sh.status} lang={lang} /></span>
+                <span className="st" style={{ justifySelf: "end" }}>
+                  {sh.ticket_url ? (
+                    <a href={sh.ticket_url} target="_blank" rel="noopener" aria-label={`${sh.name} link`}>
+                      <StatusPill status={sh.status} lang={lang} />
+                    </a>
+                  ) : (
+                    <StatusPill status={sh.status} lang={lang} />
+                  )}
+                </span>
               </div>
             ))}
           </div>

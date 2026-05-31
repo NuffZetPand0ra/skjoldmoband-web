@@ -2,13 +2,14 @@
 
 Official website and lightweight admin panel for Skjoldmø.
 
-This project is a Flask app that serves a static React frontend (loaded directly in the browser via CDN) and stores editable site content in SQLite.
+This project is a Flask app that serves a static React frontend (loaded directly in the browser via CDN) and stores editable site content in a relational SQLite schema via SQLAlchemy ORM.
 
 ## Features
 
 - Public site served at `/`
 - Admin panel served at `/admin.html`
-- Config API backed by SQLite (`/api/config`)
+- Config API backed by SQLAlchemy ORM + SQLite (`/api/config`)
+- Automatic startup migrations with legacy JSON-config import
 - Session-based admin login with username/password
 - Per-user password hashes salted by Werkzeug and peppered server-side
 - Danish/English copy support for key content blocks
@@ -16,7 +17,7 @@ This project is a Flask app that serves a static React frontend (loaded directly
 
 ## Tech Stack
 
-- Backend: Flask
+- Backend: Flask + SQLAlchemy ORM
 - Database: SQLite
 - Frontend: React + ReactDOM + Babel Standalone (CDN)
 - Runtime: Python
@@ -81,8 +82,8 @@ Then open:
 
 ## How Content Is Stored
 
-- On startup, `server.py` creates a `config` table if missing.
-- If no row exists, a default JSON config is inserted.
+- On startup, `server.py` runs schema migrations and ensures relational tables exist.
+- If the legacy `config` JSON blob table exists, its data is imported once into the relational tables.
 - The public site fetches config from `GET /api/config`.
 - The admin panel signs in via `POST /api/auth/login`, keeps its session in an HttpOnly cookie, and sends updates to `POST /api/config`.
 - Authenticated admins can also create more users at `POST /api/users`.
@@ -130,6 +131,7 @@ Responses:
 
 - `data.db` is in `.gitignore`.
 - Frontend code under `static/app/` is intentionally unbundled for simple editing/deployment.
+- Legacy `config` table is kept as historical data after import; runtime reads/writes use relational tables.
 - For production, set a strong `ADMIN_PASSWORD` and run behind a proper WSGI/HTTP setup.
 
 ## Deploying With Render Blueprint

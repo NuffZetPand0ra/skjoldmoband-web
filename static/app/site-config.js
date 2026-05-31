@@ -15,11 +15,11 @@
       tiktok: { da: "Sange & små øjeblikke", en: "Songs & small moments" },
     },
     shows: [
-      { m: "JUN", d: "14", y: "2026", name: "Skovtårnet Sessions", city: "Gisselfeld · DK", status: "tickets" },
-      { m: "JUL", d: "26", y: "2026", name: "Tønder Folk · Aftenscenen", city: "Tønder · DK", status: "tickets" },
-      { m: "AUG", d: "08", y: "2026", name: "Smukfest — Bøgescenen", city: "Skanderborg · DK", status: "soldout" },
-      { m: "SEP", d: "19", y: "2026", name: "Huset", city: "Aarhus · DK", status: "tickets" },
-      { m: "OKT", d: "31", y: "2026", name: "Samhain — Allehelgensnat", city: "København · DK", status: "free" },
+      { m: "JUN", d: "14", y: "2026", name: "Skovtårnet Sessions", city: "Gisselfeld · DK", status: "tickets", ticket_url: "" },
+      { m: "JUL", d: "26", y: "2026", name: "Tønder Folk · Aftenscenen", city: "Tønder · DK", status: "tickets", ticket_url: "" },
+      { m: "AUG", d: "08", y: "2026", name: "Smukfest — Bøgescenen", city: "Skanderborg · DK", status: "soldout", ticket_url: "" },
+      { m: "SEP", d: "19", y: "2026", name: "Huset", city: "Aarhus · DK", status: "tickets", ticket_url: "" },
+      { m: "OKT", d: "31", y: "2026", name: "Samhain — Allehelgensnat", city: "København · DK", status: "free", ticket_url: "" },
     ],
     text: {
       tagline: {

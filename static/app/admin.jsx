@@ -136,7 +136,7 @@ function Admin() {
 
   const dirty = cfg ? JSON.stringify(cfg) !== baseline : false;
 
-  const addShow = () => set((n) => n.shows.push({ m: "JAN", d: "01", y: String(new Date().getFullYear() + 1), name: "", city: "", status: "tickets" }));
+  const addShow = () => set((n) => n.shows.push({ m: "JAN", d: "01", y: String(new Date().getFullYear() + 1), name: "", city: "", status: "tickets", ticket_url: "" }));
   const delShow = (i) => set((n) => n.shows.splice(i, 1));
   const moveShow = (i, d) => set((n) => { const j = i + d; if (j < 0 || j >= n.shows.length) return; const [x] = n.shows.splice(i, 1); n.shows.splice(j, 0, x); });
   const updShow = (i, k, v) => set((n) => { n.shows[i][k] = v; });
@@ -237,7 +237,7 @@ function Admin() {
         .admin .field{margin-bottom:16px}
         .admin .sub{border:1px solid var(--line);border-radius:9px;padding:18px;margin-top:14px;background:oklch(0.135 0.012 64)}
         .admin .sub-h{display:flex;align-items:center;gap:10px;margin-bottom:14px;color:var(--gold-2);font-family:'Cinzel',serif;font-size:15px}
-        .admin .showrow{display:grid;grid-template-columns:74px 56px 70px 1.4fr 1.1fr 118px auto;gap:10px;align-items:end;padding:14px;border:1px solid var(--line);border-radius:9px;margin-bottom:12px;background:oklch(0.135 0.012 64)}
+        .admin .showrow{display:grid;grid-template-columns:74px 56px 70px 1.2fr 1fr 1.3fr 118px auto;gap:10px;align-items:end;padding:14px;border:1px solid var(--line);border-radius:9px;margin-bottom:12px;background:oklch(0.135 0.012 64)}
         .admin .btn{font-family:'Cinzel',serif;font-size:12px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;border-radius:999px;padding:10px 18px;border:1px solid var(--line);background:transparent;color:var(--ink-2);transition:all .2s}
         .admin .btn:hover{border-color:var(--ink-2);color:var(--ink)}
         .admin .btn.primary{border-color:var(--gold);color:var(--bg);background:var(--gold-2)}
@@ -332,6 +332,7 @@ function Admin() {
               <div><label>Year</label><input value={sh.y} onChange={(e) => updShow(i, "y", e.target.value)} /></div>
               <div><label>Venue / event</label><input value={sh.name} onChange={(e) => updShow(i, "name", e.target.value)} /></div>
               <div><label>City</label><input value={sh.city} onChange={(e) => updShow(i, "city", e.target.value)} /></div>
+              <div><label>Ticket / show URL</label><input value={sh.ticket_url || ""} onChange={(e) => updShow(i, "ticket_url", e.target.value)} placeholder="https://…" /></div>
               <div><label>Status</label><select value={sh.status} onChange={(e) => updShow(i, "status", e.target.value)}><option value="tickets">Tickets</option><option value="soldout">Sold out</option><option value="free">Free</option></select></div>
               <div style={{ display: "flex", gap: 5 }}>
                 <button className="iconbtn" title="Move up" onClick={() => moveShow(i, -1)}>↑</button>
