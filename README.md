@@ -134,6 +134,14 @@ Responses:
 - Legacy `config` table is kept as historical data after import; runtime reads/writes use relational tables.
 - For production, set a strong `ADMIN_PASSWORD` and run behind a proper WSGI/HTTP setup.
 
+## Licensing
+
+This repository uses split licensing:
+
+- Software source code is licensed under MIT (see `LICENSE`).
+- Original creative content and branding are all rights reserved (see `CONTENT_LICENSE.md`).
+- Third-party libraries/fonts/assets keep their own licenses (see `THIRD_PARTY_NOTICES.md`).
+
 ## Deploying With Render Blueprint
 
 This repo includes a production-ready Render Blueprint at `render.yaml` and a Gunicorn startup script at `scripts/start.sh`.
