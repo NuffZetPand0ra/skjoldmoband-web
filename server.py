@@ -80,6 +80,13 @@ class LocalizedText(Base):
     en: Mapped[str] = mapped_column(String, nullable=False, default="")
 
 
+class SeoSetting(Base):
+    __tablename__ = "seo_settings"
+
+    key: Mapped[str] = mapped_column(String, primary_key=True)
+    value: Mapped[str] = mapped_column(String, nullable=False, default="")
+
+
 class SchemaMigration(Base):
     __tablename__ = "schema_migrations"
 
@@ -170,11 +177,46 @@ DEFAULT_CONFIG = {
             "en": "Skjoldmø is a Nordic folk band weaving old ballads, drone strings and forest-dark harmonies. Guitar, cello and voice — rooted in Scandinavian tradition and the quiet of the woods.",
         },
     },
+    "seo": {
+        "site_name": "Skjoldmø",
+        "title": {
+            "da": "Skjoldmø | Nordisk folkemusik fra de dybe skove",
+            "en": "Skjoldmø | Nordic folk from the deep woods",
+        },
+        "description": {
+            "da": "Skjoldmø er et nordisk folkeband med guitar, cello og stemme. Hør ny musik, se kommende koncerter og find bookinginfo.",
+            "en": "Skjoldmø is a Nordic folk band with guitar, cello and voice. Discover new music, upcoming shows, and booking details.",
+        },
+        "keywords": {
+            "da": "Skjoldmø, nordisk folk, dansk folk, live koncert, skandinavisk musik",
+            "en": "Skjoldmø, nordic folk, danish folk, live music, scandinavian music",
+        },
+        "canonical_url": "",
+        "og_image": "",
+        "og_type": "website",
+        "twitter_card": "summary_large_image",
+        "twitter_site": "",
+        "twitter_creator": "",
+        "robots": "index,follow,max-image-preview:large",
+        "theme_color": "#221c16",
+    },
 }
 
 
 SOCIAL_PLATFORMS = ("facebook", "instagram", "tiktok")
 TEXT_KEYS = ("tagline", "connect_intro", "about")
+SEO_LOCALIZED_KEYS = ("title", "description", "keywords")
+SEO_STRING_KEYS = (
+    "site_name",
+    "canonical_url",
+    "og_image",
+    "og_type",
+    "twitter_card",
+    "twitter_site",
+    "twitter_creator",
+    "robots",
+    "theme_color",
+)
 
 
 @contextmanager
@@ -213,6 +255,14 @@ def normalize_config(payload):
         item = text_payload.get(key) or {}
         cfg["text"][key]["da"] = str(item.get("da", cfg["text"][key]["da"]))
         cfg["text"][key]["en"] = str(item.get("en", cfg["text"][key]["en"]))
+
+    seo_payload = payload.get("seo") or {}
+    for key in SEO_LOCALIZED_KEYS:
+        item = seo_payload.get(key) or {}
+        cfg["seo"][key]["da"] = str(item.get("da", cfg["seo"][key]["da"]))
+        cfg["seo"][key]["en"] = str(item.get("en", cfg["seo"][key]["en"]))
+    for key in SEO_STRING_KEYS:
+        cfg["seo"][key] = str(seo_payload.get(key, cfg["seo"][key]))
 
     raw_shows = payload.get("shows")
     if isinstance(raw_shows, list):
@@ -282,6 +332,23 @@ def write_config_to_relational(db: Session, config_payload):
         row.da = cfg["text"][key]["da"]
         row.en = cfg["text"][key]["en"]
 
+    existing_seo = {row.key: row for row in db.scalars(select(SeoSetting)).all()}
+    for key in SEO_STRING_KEYS:
+        row = existing_seo.get(key)
+        if not row:
+            row = SeoSetting(key=key)
+            db.add(row)
+        row.value = cfg["seo"][key]
+
+    for key in SEO_LOCALIZED_KEYS:
+        for locale in ("da", "en"):
+            seo_key = f"{key}_{locale}"
+            row = existing_seo.get(seo_key)
+            if not row:
+                row = SeoSetting(key=seo_key)
+                db.add(row)
+            row.value = cfg["seo"][key][locale]
+
     db.execute(delete(Show))
     for idx, show in enumerate(cfg["shows"]):
         db.add(
@@ -318,6 +385,18 @@ def read_config_from_relational(db: Session):
         if row.key in TEXT_KEYS:
             cfg["text"][row.key]["da"] = row.da
             cfg["text"][row.key]["en"] = row.en
+
+    for row in db.scalars(select(SeoSetting)).all():
+        if row.key in SEO_STRING_KEYS:
+            cfg["seo"][row.key] = row.value
+            continue
+        for key in SEO_LOCALIZED_KEYS:
+            if row.key == f"{key}_da":
+                cfg["seo"][key]["da"] = row.value
+                break
+            if row.key == f"{key}_en":
+                cfg["seo"][key]["en"] = row.value
+                break
 
     cfg["shows"] = []
     rows = db.scalars(select(Show).order_by(Show.sort_order.asc(), Show.id.asc())).all()
@@ -380,9 +459,45 @@ def migration_2_add_show_ticket_url(db_conn):
     )
 
 
+def migration_3_add_seo_settings(db_conn):
+    db_conn.execute(
+        text(
+            """
+            CREATE TABLE IF NOT EXISTS seo_settings (
+                key TEXT PRIMARY KEY,
+                value TEXT NOT NULL DEFAULT ''
+            )
+            """
+        )
+    )
+
+    existing = set(
+        db_conn.execute(text("SELECT key FROM seo_settings")).scalars().all()
+    )
+
+    for key in SEO_STRING_KEYS:
+        if key in existing:
+            continue
+        db_conn.execute(
+            text("INSERT INTO seo_settings (key, value) VALUES (:key, :value)"),
+            {"key": key, "value": DEFAULT_CONFIG["seo"][key]},
+        )
+
+    for key in SEO_LOCALIZED_KEYS:
+        for locale in ("da", "en"):
+            seo_key = f"{key}_{locale}"
+            if seo_key in existing:
+                continue
+            db_conn.execute(
+                text("INSERT INTO seo_settings (key, value) VALUES (:key, :value)"),
+                {"key": seo_key, "value": DEFAULT_CONFIG["seo"][key][locale]},
+            )
+
+
 MIGRATIONS = [
     (1, "initial_relational_schema", migration_1_initial_relational),
     (2, "add_show_ticket_url", migration_2_add_show_ticket_url),
+    (3, "add_seo_settings", migration_3_add_seo_settings),
 ]
 
 

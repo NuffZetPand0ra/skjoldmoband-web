@@ -1,4 +1,118 @@
 /* Skjoldmø — public site (Natteskov direction), responsive, config-driven. */
+function upsertMetaByName(name, content) {
+  let el = document.head.querySelector(`meta[name="${name}"]`);
+  if (!el) {
+    el = document.createElement("meta");
+    el.setAttribute("name", name);
+    document.head.appendChild(el);
+  }
+  el.setAttribute("content", content || "");
+}
+
+function upsertMetaByProperty(property, content) {
+  let el = document.head.querySelector(`meta[property="${property}"]`);
+  if (!el) {
+    el = document.createElement("meta");
+    el.setAttribute("property", property);
+    document.head.appendChild(el);
+  }
+  el.setAttribute("content", content || "");
+}
+
+function upsertLink(rel, href) {
+  let el = document.head.querySelector(`link[rel="${rel}"]`);
+  if (!el) {
+    el = document.createElement("link");
+    el.setAttribute("rel", rel);
+    document.head.appendChild(el);
+  }
+  el.setAttribute("href", href || "");
+}
+
+function upsertJsonLd(id, graph) {
+  let el = document.head.querySelector(`script#${id}`);
+  if (!el) {
+    el = document.createElement("script");
+    el.type = "application/ld+json";
+    el.id = id;
+    document.head.appendChild(el);
+  }
+  el.textContent = JSON.stringify(graph);
+}
+
+function toAbsoluteUrl(value) {
+  if (!value) return "";
+  try {
+    return new URL(value, window.location.origin).toString();
+  } catch (e) {
+    return value;
+  }
+}
+
+function applySeo(cfg, lang, t) {
+  const seo = cfg.seo || {};
+  const siteName = seo.site_name || "Skjoldmø";
+  const title = t(seo.title, lang) || siteName;
+  const description = t(seo.description, lang) || "";
+  const keywords = t(seo.keywords, lang) || "";
+  const canonical = toAbsoluteUrl(seo.canonical_url || window.location.href);
+  const imageUrl = toAbsoluteUrl(seo.og_image || "");
+  const ogType = seo.og_type || "website";
+  const twitterCard = seo.twitter_card || "summary_large_image";
+  const robots = seo.robots || "index,follow,max-image-preview:large";
+  const themeColor = seo.theme_color || "#221c16";
+  const locale = lang === "en" ? "en_US" : "da_DK";
+  const altLocale = lang === "en" ? "da_DK" : "en_US";
+
+  document.title = title;
+  document.documentElement.setAttribute("lang", lang);
+
+  upsertMetaByName("description", description);
+  upsertMetaByName("keywords", keywords);
+  upsertMetaByName("robots", robots);
+  upsertMetaByName("theme-color", themeColor);
+
+  upsertMetaByProperty("og:site_name", siteName);
+  upsertMetaByProperty("og:type", ogType);
+  upsertMetaByProperty("og:title", title);
+  upsertMetaByProperty("og:description", description);
+  upsertMetaByProperty("og:url", canonical);
+  upsertMetaByProperty("og:locale", locale);
+  upsertMetaByProperty("og:locale:alternate", altLocale);
+  upsertMetaByProperty("og:image", imageUrl);
+
+  upsertMetaByName("twitter:card", twitterCard);
+  upsertMetaByName("twitter:title", title);
+  upsertMetaByName("twitter:description", description);
+  upsertMetaByName("twitter:site", seo.twitter_site || "");
+  upsertMetaByName("twitter:creator", seo.twitter_creator || "");
+  upsertMetaByName("twitter:image", imageUrl);
+
+  upsertLink("canonical", canonical);
+
+  const sameAs = (cfg.links ? Object.values(cfg.links) : []).filter(Boolean);
+  upsertJsonLd("sk-seo-ld", {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        name: siteName,
+        url: canonical,
+        inLanguage: lang,
+      },
+      {
+        "@type": "MusicGroup",
+        name: siteName,
+        description,
+        url: canonical,
+        email: cfg.email || undefined,
+        image: imageUrl || undefined,
+        sameAs,
+      },
+    ],
+  });
+}
+
 function Site({ cfg }) {
   const [lang, setLang] = useLang();
   const { UI, STATUS, SOCIAL_ORDER, NAMES, t, credit } = window.SKCONF;
@@ -11,6 +125,10 @@ function Site({ cfg }) {
     })), []);
 
   const mailto = "mailto:" + cfg.email;
+
+  React.useEffect(() => {
+    applySeo(cfg, lang, t);
+  }, [cfg, lang, t]);
 
   return (
     <div className="site" style={{ background: "oklch(0.125 0.012 64)", color: "var(--ink)", position: "relative", overflow: "hidden", minHeight: "100vh", fontFamily: "'EB Garamond', Georgia, serif" }}>

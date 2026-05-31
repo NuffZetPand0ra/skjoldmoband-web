@@ -35,6 +35,29 @@
         en: "Skjoldmø is a Nordic folk band weaving old ballads, drone strings and forest-dark harmonies. Guitar, cello and voice — rooted in Scandinavian tradition and the quiet of the woods.",
       },
     },
+    seo: {
+      site_name: "Skjoldmø",
+      title: {
+        da: "Skjoldmø | Nordisk folkemusik fra de dybe skove",
+        en: "Skjoldmø | Nordic folk from the deep woods",
+      },
+      description: {
+        da: "Skjoldmø er et nordisk folkeband med guitar, cello og stemme. Hør ny musik, se kommende koncerter og find bookinginfo.",
+        en: "Skjoldmø is a Nordic folk band with guitar, cello and voice. Discover new music, upcoming shows, and booking details.",
+      },
+      keywords: {
+        da: "Skjoldmø, nordisk folk, dansk folk, live koncert, skandinavisk musik",
+        en: "Skjoldmø, nordic folk, danish folk, live music, scandinavian music",
+      },
+      canonical_url: "",
+      og_image: "",
+      og_type: "website",
+      twitter_card: "summary_large_image",
+      twitter_site: "",
+      twitter_creator: "",
+      robots: "index,follow,max-image-preview:large",
+      theme_color: "#221c16",
+    },
   };
 
   const UI = {

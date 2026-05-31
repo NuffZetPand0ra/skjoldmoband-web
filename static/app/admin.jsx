@@ -363,6 +363,60 @@ function Admin() {
             </div></div>
         </div>
 
+        <div className="panel">
+          <div className="ph"><span className="eyebrow">SEO</span><span className="hint">Search snippet · Open Graph · Twitter cards · robots</span></div>
+          <div className="field"><label>Site name</label><input value={cfg.seo.site_name} onChange={(e) => set((n) => { n.seo.site_name = e.target.value; })} placeholder="Skjoldmø" /></div>
+
+          <div className="field"><label>Meta title (recommended under ~60 chars)</label>
+            <div className="grid2">
+              <input value={cfg.seo.title.da} onChange={(e) => set((n) => { n.seo.title.da = e.target.value; })} placeholder="Dansk side-title" />
+              <input value={cfg.seo.title.en} onChange={(e) => set((n) => { n.seo.title.en = e.target.value; })} placeholder="English page title" />
+            </div></div>
+
+          <div className="field"><label>Meta description (recommended under ~160 chars)</label>
+            <div className="grid2">
+              <textarea value={cfg.seo.description.da} onChange={(e) => set((n) => { n.seo.description.da = e.target.value; })} placeholder="Dansk meta description" />
+              <textarea value={cfg.seo.description.en} onChange={(e) => set((n) => { n.seo.description.en = e.target.value; })} placeholder="English meta description" />
+            </div></div>
+
+          <div className="field"><label>Meta keywords (comma-separated)</label>
+            <div className="grid2">
+              <input value={cfg.seo.keywords.da} onChange={(e) => set((n) => { n.seo.keywords.da = e.target.value; })} placeholder="dansk keyword, keyword" />
+              <input value={cfg.seo.keywords.en} onChange={(e) => set((n) => { n.seo.keywords.en = e.target.value; })} placeholder="english keyword, keyword" />
+            </div></div>
+
+          <div className="grid2">
+            <div className="field"><label>Canonical URL (optional)</label><input value={cfg.seo.canonical_url} onChange={(e) => set((n) => { n.seo.canonical_url = e.target.value; })} placeholder="https://example.com/" /></div>
+            <div className="field"><label>Theme color</label><input value={cfg.seo.theme_color} onChange={(e) => set((n) => { n.seo.theme_color = e.target.value; })} placeholder="#221c16" /></div>
+          </div>
+
+          <div className="grid2">
+            <div className="field"><label>Robots</label><input value={cfg.seo.robots} onChange={(e) => set((n) => { n.seo.robots = e.target.value; })} placeholder="index,follow,max-image-preview:large" /></div>
+            <div className="field"><label>Open Graph image URL (optional)</label><input value={cfg.seo.og_image} onChange={(e) => set((n) => { n.seo.og_image = e.target.value; })} placeholder="https://…/share-image.jpg" /></div>
+          </div>
+
+          <div className="grid2">
+            <div className="field"><label>Open Graph type</label>
+              <select value={cfg.seo.og_type} onChange={(e) => set((n) => { n.seo.og_type = e.target.value; })}>
+                <option value="website">website</option>
+                <option value="music.group">music.group</option>
+                <option value="profile">profile</option>
+              </select>
+            </div>
+            <div className="field"><label>Twitter card type</label>
+              <select value={cfg.seo.twitter_card} onChange={(e) => set((n) => { n.seo.twitter_card = e.target.value; })}>
+                <option value="summary_large_image">summary_large_image</option>
+                <option value="summary">summary</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="grid2">
+            <div className="field"><label>Twitter @site (optional)</label><input value={cfg.seo.twitter_site} onChange={(e) => set((n) => { n.seo.twitter_site = e.target.value; })} placeholder="@skjoldmoband" /></div>
+            <div className="field"><label>Twitter @creator (optional)</label><input value={cfg.seo.twitter_creator} onChange={(e) => set((n) => { n.seo.twitter_creator = e.target.value; })} placeholder="@artist" /></div>
+          </div>
+        </div>
+
         <div style={{ fontSize: 14.5, color: "var(--ink-2)", lineHeight: 1.65, background: "oklch(0.135 0.012 64)", border: "1px solid var(--line)", borderLeft: "2px solid var(--gold)", borderRadius: 8, padding: "16px 18px", marginTop: 22 }}>
           <strong style={{ color: "var(--ink)", fontFamily: "'Cinzel',serif", fontSize: 13, letterSpacing: ".06em" }}>How publishing works</strong><br />
           Changes saved here are written directly to the database and appear on the <a href="/" target="_blank" rel="noopener">live site</a> immediately for all visitors. No file exports needed.
