@@ -20,7 +20,7 @@ services:
       - key: DB_PATH
         value: /var/data/data.db
       - key: ADMIN_USERNAME
-        value: admin
+        sync: false
       - key: ADMIN_PASSWORD
         sync: false
       - key: PASSWORD_PEPPER
