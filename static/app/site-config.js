@@ -6,13 +6,13 @@
     links: {
       facebook: "https://facebook.com/skjoldmoband",
       instagram: "https://instagram.com/skjoldmoband",
-      tiktok: "https://tiktok.com/@skjoldmoband",
+      youtube: "https://youtube.com/@skjoldmoband",
     },
-    handles: { facebook: "@skjoldmoband", instagram: "@skjoldmoband", tiktok: "@skjoldmoband" },
+    handles: { facebook: "@skjoldmoband", instagram: "@skjoldmoband", youtube: "@skjoldmoband" },
     desc: {
       facebook: { da: "Koncertdatoer & nyt fra bandet", en: "Concert dates & news" },
       instagram: { da: "Billeder fra vejen & scenen", en: "Photos from the road & stage" },
-      tiktok: { da: "Sange & små øjeblikke", en: "Songs & small moments" },
+      youtube: { da: "Musikvideoer & liveoptagelser", en: "Music videos & live sessions" },
     },
     shows: [
       { m: "JUN", d: "14", y: "2026", name: "Skovtårnet Sessions", city: "Gisselfeld · DK", status: "tickets", ticket_url: "" },
@@ -79,8 +79,8 @@
     free: { da: "Gratis", en: "Free" },
   };
 
-  const SOCIAL_ORDER = ["facebook", "instagram", "tiktok"];
-  const NAMES = { facebook: "Facebook", instagram: "Instagram", tiktok: "TikTok" };
+  const SOCIAL_ORDER = ["facebook", "instagram", "youtube"];
+  const NAMES = { facebook: "Facebook", instagram: "Instagram", youtube: "YouTube" };
 
   function t(obj, lang) { return obj && (obj[lang] != null ? obj[lang] : obj.da); }
   function clone(o) { return JSON.parse(JSON.stringify(o)); }

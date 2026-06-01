@@ -104,17 +104,17 @@ DEFAULT_CONFIG = {
     "links": {
         "facebook": "https://facebook.com/skjoldmoband",
         "instagram": "https://instagram.com/skjoldmoband",
-        "tiktok": "https://tiktok.com/@skjoldmoband",
+        "youtube": "https://youtube.com/@skjoldmoband",
     },
     "handles": {
         "facebook": "@skjoldmoband",
         "instagram": "@skjoldmoband",
-        "tiktok": "@skjoldmoband",
+        "youtube": "@skjoldmoband",
     },
     "desc": {
         "facebook": {"da": "Koncertdatoer & nyt fra bandet", "en": "Concert dates & news"},
         "instagram": {"da": "Billeder fra vejen & scenen", "en": "Photos from the road & stage"},
-        "tiktok": {"da": "Sange & små øjeblikke", "en": "Songs & small moments"},
+        "youtube": {"da": "Musikvideoer & liveoptagelser", "en": "Music videos & live sessions"},
     },
     "shows": [
         {
@@ -203,7 +203,7 @@ DEFAULT_CONFIG = {
 }
 
 
-SOCIAL_PLATFORMS = ("facebook", "instagram", "tiktok")
+SOCIAL_PLATFORMS = ("facebook", "instagram", "youtube")
 TEXT_KEYS = ("tagline", "connect_intro", "about")
 SEO_LOCALIZED_KEYS = ("title", "description", "keywords")
 SEO_STRING_KEYS = (
@@ -494,10 +494,37 @@ def migration_3_add_seo_settings(db_conn):
             )
 
 
+def migration_4_replace_tiktok_with_youtube(db_conn):
+    has_social = db_conn.execute(
+        text("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'social_links'")
+    ).fetchone()
+    if not has_social:
+        return
+
+    tiktok_exists = db_conn.execute(
+        text("SELECT 1 FROM social_links WHERE platform = 'tiktok' LIMIT 1")
+    ).fetchone()
+    if not tiktok_exists:
+        return
+
+    youtube_exists = db_conn.execute(
+        text("SELECT 1 FROM social_links WHERE platform = 'youtube' LIMIT 1")
+    ).fetchone()
+
+    if youtube_exists:
+        db_conn.execute(text("DELETE FROM social_links WHERE platform = 'tiktok'"))
+        return
+
+    db_conn.execute(
+        text("UPDATE social_links SET platform = 'youtube' WHERE platform = 'tiktok'")
+    )
+
+
 MIGRATIONS = [
     (1, "initial_relational_schema", migration_1_initial_relational),
     (2, "add_show_ticket_url", migration_2_add_show_ticket_url),
     (3, "add_seo_settings", migration_3_add_seo_settings),
+    (4, "replace_tiktok_with_youtube", migration_4_replace_tiktok_with_youtube),
 ]
 
 

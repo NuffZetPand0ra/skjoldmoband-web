@@ -77,14 +77,15 @@ function IcoInstagram({ s = 22, c = "currentColor" }) {
     </svg>
   );
 }
-function IcoTiktok({ s = 22, c = "currentColor" }) {
+function IcoYoutube({ s = 22, c = "currentColor" }) {
   return (
     <svg width={s} height={s} viewBox="0 0 24 24" fill="none">
-      <path d="M14 4c.3 2.2 1.8 3.9 4 4.2v2.6c-1.5 0-2.9-.5-4-1.3v5.6c0 2.9-2.3 5.2-5.2 5.2S3.6 18 3.6 15.1c0-2.7 2-4.9 4.7-5.2v2.7c-1.2.2-2 1.2-2 2.5 0 1.4 1.1 2.5 2.5 2.5s2.5-1.1 2.5-2.5V4H14Z" stroke={c} strokeWidth="1.3" strokeLinejoin="round"/>
+      <rect x="3.5" y="6" width="17" height="12" rx="3.2" stroke={c} strokeWidth="1.4" />
+      <path d="M10 9.3v5.4l5-2.7-5-2.7Z" fill={c} />
     </svg>
   );
 }
-const ICONS = { facebook: IcoFacebook, instagram: IcoInstagram, tiktok: IcoTiktok };
+const ICONS = { facebook: IcoFacebook, instagram: IcoInstagram, youtube: IcoYoutube };
 
 function IcoArrow({ s = 16, c = "currentColor" }) {
   return (
@@ -115,4 +116,4 @@ function RuneRule({ color = "var(--line)", dot = "var(--gold)", width = 220 }) {
   );
 }
 
-Object.assign(window, { useLang, Logo, LangToggle, ICONS, IcoArrow, IcoFacebook, IcoInstagram, IcoTiktok, Grain, RuneRule });
+Object.assign(window, { useLang, Logo, LangToggle, ICONS, IcoArrow, IcoFacebook, IcoInstagram, IcoYoutube, Grain, RuneRule });
