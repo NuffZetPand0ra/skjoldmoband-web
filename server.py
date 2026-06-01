@@ -1,8 +1,10 @@
 import json
 import os
+import re
 from contextlib import contextmanager
 from copy import deepcopy
 from functools import wraps
+from html import escape
 
 from flask import Flask, jsonify, request, send_from_directory, session
 from sqlalchemy import Integer, String, create_engine, delete, func, select, text
@@ -415,6 +417,70 @@ def read_config_from_relational(db: Session):
     return cfg
 
 
+def render_index_html():
+    with get_session() as db:
+        cfg = read_config_from_relational(db)
+
+    seo = cfg.get("seo") or {}
+    lang = "da"
+
+    def pick_localized(item, fallback=""):
+        if isinstance(item, dict):
+            return str(item.get(lang) or item.get("da") or item.get("en") or fallback)
+        return str(item or fallback)
+
+    site_name = str(seo.get("site_name") or "Skjoldmø")
+    title = pick_localized(seo.get("title"), site_name)
+    description = pick_localized(seo.get("description"), "")
+    keywords = pick_localized(seo.get("keywords"), "")
+    robots = str(seo.get("robots") or "index,follow,max-image-preview:large")
+    theme_color = str(seo.get("theme_color") or "#221c16")
+    og_type = str(seo.get("og_type") or "website")
+    twitter_card = str(seo.get("twitter_card") or "summary_large_image")
+
+    index_path = os.path.join(app.static_folder, "index.html")
+    with open(index_path, "r", encoding="utf-8") as f:
+        html_doc = f.read()
+
+    replacements = {
+        "title": title,
+        "description": description,
+        "keywords": keywords,
+        "robots": robots,
+        "theme-color": theme_color,
+        "og:site_name": site_name,
+        "og:type": og_type,
+        "og:title": title,
+        "og:description": description,
+        "twitter:card": twitter_card,
+        "twitter:title": title,
+        "twitter:description": description,
+    }
+
+    html_doc = re.sub(
+        r"(<title>)(.*?)(</title>)",
+        lambda m: f"{m.group(1)}{escape(replacements['title'])}{m.group(3)}",
+        html_doc,
+        count=1,
+        flags=re.DOTALL,
+    )
+
+    for key, value in replacements.items():
+        if key == "title":
+            continue
+        escaped = escape(value, quote=True)
+        if key.startswith("og:"):
+            pattern = rf'(<meta\\s+property="{re.escape(key)}"\\s+content=")([^"]*)("\\s*/?>)'
+        else:
+            pattern = rf'(<meta\\s+name="{re.escape(key)}"\\s+content=")([^"]*)("\\s*/?>)'
+        html_doc = re.sub(pattern, rf"\\g<1>{escaped}\\3", html_doc, count=1)
+
+    response = app.response_class(html_doc, mimetype="text/html")
+    response.headers["Cache-Control"] = "no-store, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    return response
+
+
 def ensure_admin_user(db: Session):
     count = db.scalar(select(func.count()).select_from(User)) or 0
     if count:
@@ -676,7 +742,10 @@ def create_user():
 def get_config():
     with get_session() as db:
         cfg = read_config_from_relational(db)
-    return app.response_class(json.dumps(cfg, ensure_ascii=False), mimetype="application/json")
+    response = app.response_class(json.dumps(cfg, ensure_ascii=False), mimetype="application/json")
+    response.headers["Cache-Control"] = "no-store, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    return response
 
 
 @app.route("/api/config", methods=["POST"])
@@ -695,6 +764,8 @@ def save_config():
 def serve_static(path):
     if not path:
         path = "index.html"
+    if path == "index.html":
+        return render_index_html()
     return send_from_directory(app.static_folder, path)
 
 
