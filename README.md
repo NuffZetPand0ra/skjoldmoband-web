@@ -92,9 +92,11 @@ Then open:
 ## API
 
 ### `GET /api/config`
+
 Returns the current site configuration JSON.
 
 ### `POST /api/auth/login`
+
 Signs in with a username and password.
 
 Body:
@@ -103,18 +105,23 @@ Body:
 - `password`
 
 ### `POST /api/auth/logout`
+
 Clears the current session.
 
 ### `GET /api/auth/me`
+
 Returns the current authenticated user, if any.
 
 ### `GET /api/users`
+
 Lists user accounts for the signed-in admin session.
 
 ### `POST /api/users`
+
 Creates a new user account.
 
 ### `POST /api/config`
+
 Saves configuration JSON.
 
 Auth:
@@ -161,9 +168,9 @@ This repo includes a production-ready Render Blueprint at `render.yaml` and a Gu
 2. In Render, choose **New +** -> **Blueprint**.
 3. Select this repository and branch.
 4. During setup, provide secret values for:
-	- `ADMIN_PASSWORD`
-	- `PASSWORD_PEPPER`
-	- `SECRET_KEY`
+   - `ADMIN_PASSWORD`
+   - `PASSWORD_PEPPER`
+   - `SECRET_KEY`
 5. Deploy.
 
 ### Important bootstrap behavior
