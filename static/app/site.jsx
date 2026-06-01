@@ -162,9 +162,9 @@ function Site({ cfg }) {
       `}</style>
 
       {/* atmosphere */}
-      <div aria-hidden="true" style={{ position: "absolute", inset: 0, backgroundImage: "url('/assets/forest.png')", backgroundSize: "min(120%, 1300px) auto", backgroundPosition: "center -40px", backgroundRepeat: "no-repeat", opacity: 0.1, filter: "saturate(.7)" }} />
+      <div aria-hidden="true" style={{ position: "absolute", inset: 0, backgroundImage: "url('/assets/forest.png')", backgroundSize: "min(120%, 1300px) auto", backgroundPosition: "center -40px", backgroundRepeat: "no-repeat", opacity: 0.23, filter: "saturate(1.15) brightness(1.12) contrast(1.06)" }} />
       <div aria-hidden="true" style={{ position: "absolute", inset: 0, pointerEvents: "none",
-        background: "radial-gradient(90% 38% at 50% 4%, oklch(0.82 0.13 78 / 0.16), transparent 55%), radial-gradient(70% 50% at 50% 42%, oklch(0.7 0.11 70 / 0.08), transparent 60%), linear-gradient(180deg, oklch(0.125 0.012 64 / 0.4), oklch(0.125 0.012 64 / 0.94) 60%)" }} />
+        background: "radial-gradient(90% 38% at 50% 4%, oklch(0.82 0.13 78 / 0.18), transparent 55%), radial-gradient(70% 50% at 50% 42%, oklch(0.7 0.11 70 / 0.1), transparent 60%), linear-gradient(180deg, oklch(0.125 0.012 64 / 0.3), oklch(0.125 0.012 64 / 0.86) 60%)" }} />
       <Grain opacity={0.06} />
 
       {/* embers */}
