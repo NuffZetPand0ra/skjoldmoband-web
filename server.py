@@ -470,9 +470,9 @@ def render_index_html():
             continue
         escaped = escape(value, quote=True)
         if key.startswith("og:"):
-            pattern = rf'(<meta\\s+property="{re.escape(key)}"\\s+content=")([^"]*)("\\s*/?>)'
+            pattern = rf'(<meta\s+property="{re.escape(key)}"\s+content=")([^"]*)("\s*/?>)'
         else:
-            pattern = rf'(<meta\\s+name="{re.escape(key)}"\\s+content=")([^"]*)("\\s*/?>)'
+            pattern = rf'(<meta\s+name="{re.escape(key)}"\s+content=")([^"]*)("\s*/?>)'
         html_doc = re.sub(pattern, rf"\\g<1>{escaped}\\3", html_doc, count=1)
 
     response = app.response_class(html_doc, mimetype="text/html")
