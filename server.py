@@ -473,7 +473,7 @@ def render_index_html():
             pattern = rf'(<meta\s+property="{re.escape(key)}"\s+content=")([^"]*)("\s*/?>)'
         else:
             pattern = rf'(<meta\s+name="{re.escape(key)}"\s+content=")([^"]*)("\s*/?>)'
-        html_doc = re.sub(pattern, rf"\\g<1>{escaped}\\3", html_doc, count=1)
+        html_doc = re.sub(pattern, rf"\g<1>{escaped}\3", html_doc, count=1)
 
     response = app.response_class(html_doc, mimetype="text/html")
     response.headers["Cache-Control"] = "no-store, max-age=0"
